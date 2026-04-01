@@ -7,27 +7,35 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
- const handleLogin = async () => {
-  try {
-    const res = await fetch(`${BASE_URL}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password }),
-    });
+  // ✅ MOVE STYLES HERE
+  const styles = {
+    container: { height:"100vh", display:"flex", justifyContent:"center", alignItems:"center" },
+    card: { background:"#f5f5f5", padding:"30px", borderRadius:"10px", width:"350px", textAlign:"center" },
+    input: { width:"100%", padding:"10px", margin:"10px 0" },
+    button: { width:"100%", padding:"10px", background:"#3b5998", color:"white", border:"none" }
+  };
 
-    const data = await res.text();
+  const handleLogin = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (data.toLowerCase().includes("success")) {
-      nav("/dashboard");
-    } else {
-      alert(data);
+      const data = await res.text();
+
+      if (data.toLowerCase().includes("success")) {
+        nav("/dashboard");
+      } else {
+        alert(data);
+      }
+    } catch {
+      alert("Login failed");
     }
-  } catch {
-    alert("Login failed");
-  }
-};
+  };
 
   return (
     <div style={styles.container}>
@@ -43,10 +51,4 @@ export default function Login() {
       </div>
     </div>
   );
-  const styles = {
-  container: { height:"100vh", display:"flex", justifyContent:"center", alignItems:"center" },
-  card: { background:"#f5f5f5", padding:"30px", borderRadius:"10px", width:"350px", textAlign:"center" },
-  input: { width:"100%", padding:"10px", margin:"10px 0" },
-  button: { width:"100%", padding:"10px", background:"#3b5998", color:"white", border:"none" }
-};
 }
