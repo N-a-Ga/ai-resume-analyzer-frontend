@@ -6,21 +6,82 @@ export default function Analyzer() {
   const [jobDesc, setJobDesc] = useState("");
   const [result, setResult] = useState("");
 
-  // 🎯 Parse backend response
-  const parseResult = (text) => {
+  const styles = {
+    container: {
+      height: "100vh",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      background: "#3b5998", // SAME BG
+      fontFamily: "Segoe UI, sans-serif",
+    },
+    card: {
+      background: "#ffffff",
+      padding: "30px",
+      borderRadius: "12px",
+      width: "450px",
+      boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
+    },
+    title: {
+      textAlign: "center",
+      marginBottom: "15px",
+      color: "#333",
+    },
+    input: {
+      width: "100%",
+      margin: "10px 0",
+    },
+    textarea: {
+      width: "100%",
+      height: "110px",
+      padding: "10px",
+      borderRadius: "6px",
+      border: "1px solid #ccc",
+      outline: "none",
+    },
+    button: {
+      width: "100%",
+      padding: "12px",
+      background: "#3b5998",
+      color: "#fff",
+      border: "none",
+      borderRadius: "6px",
+      marginTop: "10px",
+      cursor: "pointer",
+      fontWeight: "bold",
+    },
+    resultBox: {
+      marginTop: "20px",
+      padding: "15px",
+      borderRadius: "8px",
+      background: "#f9f9f9",
+      border: "1px solid #ddd",
+    },
+    sectionTitle: {
+      marginTop: "10px",
+      marginBottom: "5px",
+      color: "#444",
+    },
+    list: {
+      paddingLeft: "18px",
+      margin: "5px 0",
+    },
+  };
+
+  // ✅ BETTER PARSER (more stable)
+  const parse = (text) => {
     return {
-      score: text.match(/Match Score:\s*(.*)/)?.[1] || "",
-      skills: text.match(/Skills Present:\s*([\s\S]*?)\*\*/)?.[1] || "",
-      missing: text.match(/Missing Skills:\s*([\s\S]*?)\*\*/)?.[1] || "",
+      score: text.match(/Match Score:\s*(\d+)/)?.[1] || "0",
+      skills: text.match(/Skills Present:\s*([\s\S]*?)Missing Skills:/)?.[1] || "",
+      missing: text.match(/Missing Skills:\s*([\s\S]*?)Suggestions:/)?.[1] || "",
       suggestions: text.match(/Suggestions:\s*([\s\S]*)/)?.[1] || "",
     };
   };
 
-  // 🎯 Score color
-  const getScoreColor = (score) => {
-    const num = parseInt(score);
-    if (num < 50) return "#e74c3c"; // red
-    if (num < 75) return "#f39c12"; // orange
+  const getColor = (score) => {
+    const n = parseInt(score);
+    if (n < 50) return "#e74c3c"; // red
+    if (n < 75) return "#f39c12"; // orange
     return "#2ecc71"; // green
   };
 
@@ -42,72 +103,25 @@ export default function Analyzer() {
 
       const data = await res.text();
       setResult(data);
-    } catch (err) {
-      console.error(err);
-      alert("Analysis failed");
+    } catch (e) {
+      alert("Backend error");
     }
   };
 
-  const styles = {
-    container: {
-      minHeight: "100vh",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      background: "#1e293b",
-      fontFamily: "Segoe UI, sans-serif",
-      padding: "20px",
-    },
-    card: {
-      background: "#ffffff",
-      padding: "30px",
-      borderRadius: "12px",
-      width: "500px",
-      boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-    },
-    title: {
-      textAlign: "center",
-      marginBottom: "20px",
-    },
-    input: {
-      width: "100%",
-      margin: "10px 0",
-    },
-    textarea: {
-      width: "100%",
-      height: "100px",
-      padding: "10px",
-      borderRadius: "8px",
-      border: "1px solid #ccc",
-    },
-    button: {
-      width: "100%",
-      padding: "12px",
-      background: "#2563eb",
-      color: "white",
-      border: "none",
-      borderRadius: "8px",
-      marginTop: "15px",
-      cursor: "pointer",
-      fontWeight: "bold",
-    },
-    section: {
-      marginTop: "20px",
-    },
-    box: {
-      background: "#f1f5f9",
-      padding: "10px",
-      borderRadius: "8px",
-      marginTop: "5px",
-    },
+  const renderList = (text) => {
+    return text
+      .split("\n")
+      .map((item) => item.replace("-", "").trim())
+      .filter((item) => item)
+      .map((item, i) => <li key={i}>{item}</li>);
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>Resume Analyzer</h2>
+        <h2 style={styles.title}>AI Resume Analyzer</h2>
 
-        {/* Upload */}
+        {/* FILE */}
         <input
           type="file"
           accept=".pdf"
@@ -115,60 +129,41 @@ export default function Analyzer() {
           onChange={(e) => setFile(e.target.files[0])}
         />
 
-        {/* Job Description */}
+        {/* JD */}
         <textarea
-          placeholder="Paste Job Description"
+          placeholder="Paste Job Description..."
           style={styles.textarea}
           onChange={(e) => setJobDesc(e.target.value)}
         />
 
-        {/* Button */}
         <button style={styles.button} onClick={handleAnalyze}>
           Analyze Resume
         </button>
 
         {/* RESULT */}
         {result && (() => {
-          const data = parseResult(result);
-          const color = getScoreColor(data.score);
+          const data = parse(result);
+          const color = getColor(data.score);
 
           return (
-            <div style={styles.section}>
-              <h3>Analysis Result</h3>
+            <div style={styles.resultBox}>
+              <h3 style={{ color, textAlign: "center" }}>
+                Match Score: {data.score}%
+              </h3>
 
-              {/* Score */}
-              <div style={{ ...styles.box, background: color, color: "white", fontWeight: "bold" }}>
-                Match Score: {data.score}
+              <div>
+                <h4 style={styles.sectionTitle}>✅ Skills Present</h4>
+                <ul style={styles.list}>{renderList(data.skills)}</ul>
               </div>
 
-              {/* Skills */}
-              <div style={styles.section}>
-                <h4>✅ Skills Present</h4>
-                <ul style={styles.box}>
-                  {data.skills.split("\n").map((s, i) =>
-                    s.trim().startsWith("-") ? <li key={i}>{s.replace("-", "")}</li> : null
-                  )}
-                </ul>
+              <div>
+                <h4 style={styles.sectionTitle}>❌ Missing Skills</h4>
+                <ul style={styles.list}>{renderList(data.missing)}</ul>
               </div>
 
-              {/* Missing */}
-              <div style={styles.section}>
-                <h4>❌ Missing Skills</h4>
-                <ul style={styles.box}>
-                  {data.missing.split("\n").map((s, i) =>
-                    s.trim().startsWith("-") ? <li key={i}>{s.replace("-", "")}</li> : null
-                  )}
-                </ul>
-              </div>
-
-              {/* Suggestions */}
-              <div style={styles.section}>
-                <h4>💡 Suggestions</h4>
-                <ul style={styles.box}>
-                  {data.suggestions.split("\n").map((s, i) =>
-                    s.trim().length > 0 ? <li key={i}>{s}</li> : null
-                  )}
-                </ul>
+              <div>
+                <h4 style={styles.sectionTitle}>💡 Suggestions</h4>
+                <ul style={styles.list}>{renderList(data.suggestions)}</ul>
               </div>
             </div>
           );
