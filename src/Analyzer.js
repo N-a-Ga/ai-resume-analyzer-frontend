@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { BASE_URL } from "./api";
 
 export default function Analyzer() {
-  const [resume, setResume] = useState("");
+  const [file, setFile] = useState(null);   // ✅ changed
   const [jobDesc, setJobDesc] = useState("");
   const [result, setResult] = useState("");
 
@@ -43,28 +44,35 @@ export default function Analyzer() {
     },
   };
 
-  // ✅ Upload button (simple)
+  // ✅ FIXED: only store file (NO FileReader)
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setResume(event.target.result);
-    };
-
-    reader.readAsText(file); // simple text read
+    setFile(e.target.files[0]);
   };
 
-  // ✅ Analyze (keep your logic)
-  const handleAnalyze = () => {
-    if (!resume || !jobDesc) {
+  // ✅ FIXED: send file to backend
+  const handleAnalyze = async () => {
+    if (!file || !jobDesc) {
       alert("Please upload resume and enter job description");
       return;
     }
 
-    // 👉 keep your backend logic here later
-    setResult("Analysis complete (connect backend here)");
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("jobDescription", jobDesc);
+
+    try {
+      const res = await fetch(`${BASE_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.text();
+      setResult(data);
+
+    } catch (err) {
+      console.error(err);
+      alert("Analysis failed");
+    }
   };
 
   return (
@@ -72,20 +80,15 @@ export default function Analyzer() {
       <div style={styles.card}>
         <h2>Resume Analysis</h2>
 
-        {/* ✅ Upload Button */}
+        {/* ✅ Upload PDF */}
         <input
           type="file"
+          accept=".pdf"
           style={styles.upload}
           onChange={handleFileUpload}
         />
 
-        {/* Resume Preview */}
-        <textarea
-          placeholder="Resume content"
-          style={styles.textarea}
-          value={resume}
-          onChange={(e) => setResume(e.target.value)}
-        />
+        {/* ❌ REMOVED resume preview textarea */}
 
         {/* Job Description */}
         <textarea
@@ -100,7 +103,12 @@ export default function Analyzer() {
         </button>
 
         {/* Result */}
-        {result && <p style={{ marginTop: "15px" }}>{result}</p>}
+        {result && (
+          <div style={{ marginTop: "15px", textAlign: "left" }}>
+            <h4>Analysis Result</h4>
+            <pre>{result}</pre>
+          </div>
+        )}
       </div>
     </div>
   );
