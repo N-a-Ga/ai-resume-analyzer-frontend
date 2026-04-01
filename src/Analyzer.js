@@ -12,7 +12,7 @@ export default function Analyzer() {
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      background: "#3b5998", // same as before
+      background: "#3b5998",
     },
     card: {
       background: "#f5f5f5",
@@ -44,14 +44,15 @@ export default function Analyzer() {
     },
     resultBox: {
       textAlign: "left",
-      marginTop: "15px",
+      marginTop: "20px",
       background: "#fff",
-      padding: "10px",
+      padding: "15px",
       borderRadius: "5px",
+      lineHeight: "1.6", // ✅ spacing
     },
   };
 
-  // ✅ FIXED PARSER
+  // ✅ parser
   const parse = (text) => {
     const clean = text.replace(/\*\*/g, "");
 
@@ -70,7 +71,6 @@ export default function Analyzer() {
     return "green";
   };
 
-  // 🚀 BACKEND CALL
   const handleAnalyze = async () => {
     if (!file || !jobDesc) {
       alert("Upload resume + enter job description");
@@ -99,7 +99,7 @@ export default function Analyzer() {
       <div style={styles.card}>
         <h2>Resume Analysis</h2>
 
-        {/* FILE UPLOAD */}
+        {/* FILE */}
         <input
           type="file"
           accept=".pdf"
@@ -107,14 +107,13 @@ export default function Analyzer() {
           onChange={(e) => setFile(e.target.files[0])}
         />
 
-        {/* JOB DESCRIPTION */}
+        {/* JD */}
         <textarea
           placeholder="Paste Job Description"
           style={styles.textarea}
           onChange={(e) => setJobDesc(e.target.value)}
         />
 
-        {/* BUTTON */}
         <button style={styles.button} onClick={handleAnalyze}>
           Analyze Resume
         </button>
@@ -130,7 +129,9 @@ export default function Analyzer() {
                 Match Score: {data.score}
               </h4>
 
-              <b>Skills Present:</b>
+              <b style={{ marginTop: "10px", display: "block" }}>
+                Skills Present:
+              </b>
               <ul>
                 {data.skills.split("\n").map((s, i) =>
                   s.trim() !== "" ? (
@@ -139,7 +140,9 @@ export default function Analyzer() {
                 )}
               </ul>
 
-              <b>Missing Skills:</b>
+              <b style={{ marginTop: "10px", display: "block" }}>
+                Missing Skills:
+              </b>
               <ul>
                 {data.missing.split("\n").map((s, i) =>
                   s.trim() !== "" ? (
@@ -148,7 +151,9 @@ export default function Analyzer() {
                 )}
               </ul>
 
-              <b>Suggestions:</b>
+              <b style={{ marginTop: "10px", display: "block" }}>
+                Suggestions:
+              </b>
               <ul>
                 {data.suggestions.split("\n").map((s, i) =>
                   s.trim() !== "" ? (
