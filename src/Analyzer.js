@@ -12,7 +12,7 @@ export default function Analyzer() {
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      background: "#3b5998", // ✅ SAME AS YOUR OLD BG
+      background: "#3b5998", // same as before
     },
     card: {
       background: "#f5f5f5",
@@ -51,13 +51,15 @@ export default function Analyzer() {
     },
   };
 
-  // 🎯 Parse result
+  // ✅ FIXED PARSER
   const parse = (text) => {
+    const clean = text.replace(/\*\*/g, "");
+
     return {
-      score: text.match(/Match Score:\s*(.*)/)?.[1] || "",
-      skills: text.match(/Skills Present:\s*([\s\S]*?)\*\*/)?.[1] || "",
-      missing: text.match(/Missing Skills:\s*([\s\S]*?)\*\*/)?.[1] || "",
-      suggestions: text.match(/Suggestions:\s*([\s\S]*)/)?.[1] || "",
+      score: clean.match(/Match Score:\s*(.*)/)?.[1] || "",
+      skills: clean.match(/Skills Present:\s*([\s\S]*?)\n\n/)?.[1] || "",
+      missing: clean.match(/Missing Skills:\s*([\s\S]*?)\n\n/)?.[1] || "",
+      suggestions: clean.match(/Suggestions:\s*([\s\S]*)/)?.[1] || "",
     };
   };
 
@@ -68,7 +70,7 @@ export default function Analyzer() {
     return "green";
   };
 
-  // 🚀 BACKEND CALL (YOUR API)
+  // 🚀 BACKEND CALL
   const handleAnalyze = async () => {
     if (!file || !jobDesc) {
       alert("Upload resume + enter job description");
@@ -97,7 +99,7 @@ export default function Analyzer() {
       <div style={styles.card}>
         <h2>Resume Analysis</h2>
 
-        {/* FILE */}
+        {/* FILE UPLOAD */}
         <input
           type="file"
           accept=".pdf"
@@ -105,13 +107,14 @@ export default function Analyzer() {
           onChange={(e) => setFile(e.target.files[0])}
         />
 
-        {/* JD */}
+        {/* JOB DESCRIPTION */}
         <textarea
           placeholder="Paste Job Description"
           style={styles.textarea}
           onChange={(e) => setJobDesc(e.target.value)}
         />
 
+        {/* BUTTON */}
         <button style={styles.button} onClick={handleAnalyze}>
           Analyze Resume
         </button>
@@ -130,7 +133,7 @@ export default function Analyzer() {
               <b>Skills Present:</b>
               <ul>
                 {data.skills.split("\n").map((s, i) =>
-                  s.trim().startsWith("-") ? (
+                  s.trim() !== "" ? (
                     <li key={i}>{s.replace("-", "")}</li>
                   ) : null
                 )}
@@ -139,7 +142,7 @@ export default function Analyzer() {
               <b>Missing Skills:</b>
               <ul>
                 {data.missing.split("\n").map((s, i) =>
-                  s.trim().startsWith("-") ? (
+                  s.trim() !== "" ? (
                     <li key={i}>{s.replace("-", "")}</li>
                   ) : null
                 )}
@@ -148,7 +151,9 @@ export default function Analyzer() {
               <b>Suggestions:</b>
               <ul>
                 {data.suggestions.split("\n").map((s, i) =>
-                  s.trim() ? <li key={i}>{s}</li> : null
+                  s.trim() !== "" ? (
+                    <li key={i}>{s.replace("-", "")}</li>
+                  ) : null
                 )}
               </ul>
             </div>
