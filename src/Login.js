@@ -7,27 +7,27 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
+ const handleLogin = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    });
 
-      const data = await res.text();
+    const data = await res.text();
 
-      if (data.toLowerCase().includes("success")) {
-        nav("/dashboard");
-      } else {
-        alert(data);
-      }
-    } catch {
-      alert("Login failed");
+    if (data.toLowerCase().includes("success")) {
+      nav("/dashboard");
+    } else {
+      alert(data);
     }
-  };
+  } catch {
+    alert("Login failed");
+  }
+};
 
   return (
     <div style={styles.container}>
