@@ -12,79 +12,63 @@ export default function Analyzer() {
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      background: "#3b5998", // SAME BG
-      fontFamily: "Segoe UI, sans-serif",
+      background: "#3b5998", // ✅ SAME AS YOUR OLD BG
     },
     card: {
-      background: "#ffffff",
+      background: "#f5f5f5",
       padding: "30px",
-      borderRadius: "12px",
-      width: "450px",
-      boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
-    },
-    title: {
+      borderRadius: "10px",
+      width: "420px",
       textAlign: "center",
-      marginBottom: "15px",
-      color: "#333",
-    },
-    input: {
-      width: "100%",
-      margin: "10px 0",
+      boxShadow: "0 5px 15px rgba(0,0,0,0.2)",
     },
     textarea: {
       width: "100%",
-      height: "110px",
+      height: "100px",
+      margin: "10px 0",
       padding: "10px",
-      borderRadius: "6px",
+      borderRadius: "5px",
       border: "1px solid #ccc",
-      outline: "none",
     },
     button: {
       width: "100%",
-      padding: "12px",
+      padding: "10px",
       background: "#3b5998",
-      color: "#fff",
+      color: "white",
       border: "none",
-      borderRadius: "6px",
       marginTop: "10px",
       cursor: "pointer",
-      fontWeight: "bold",
+    },
+    upload: {
+      margin: "10px 0",
     },
     resultBox: {
-      marginTop: "20px",
-      padding: "15px",
-      borderRadius: "8px",
-      background: "#f9f9f9",
-      border: "1px solid #ddd",
-    },
-    sectionTitle: {
-      marginTop: "10px",
-      marginBottom: "5px",
-      color: "#444",
-    },
-    list: {
-      paddingLeft: "18px",
-      margin: "5px 0",
+      textAlign: "left",
+      marginTop: "15px",
+      background: "#fff",
+      padding: "10px",
+      borderRadius: "5px",
     },
   };
 
-  // ✅ BETTER PARSER (more stable)
+  // 🎯 Parse result
   const parse = (text) => {
     return {
-      score: text.match(/Match Score:\s*(\d+)/)?.[1] || "0",
-      skills: text.match(/Skills Present:\s*([\s\S]*?)Missing Skills:/)?.[1] || "",
-      missing: text.match(/Missing Skills:\s*([\s\S]*?)Suggestions:/)?.[1] || "",
+      score: text.match(/Match Score:\s*(.*)/)?.[1] || "",
+      skills: text.match(/Skills Present:\s*([\s\S]*?)\*\*/)?.[1] || "",
+      missing: text.match(/Missing Skills:\s*([\s\S]*?)\*\*/)?.[1] || "",
       suggestions: text.match(/Suggestions:\s*([\s\S]*)/)?.[1] || "",
     };
   };
 
   const getColor = (score) => {
     const n = parseInt(score);
-    if (n < 50) return "#e74c3c"; // red
-    if (n < 75) return "#f39c12"; // orange
-    return "#2ecc71"; // green
+    if (n < 50) return "red";
+    if (n < 75) return "orange";
+    return "green";
   };
 
+  // 🚀 BACKEND CALL (YOUR API)
   const handleAnalyze = async () => {
     if (!file || !jobDesc) {
       alert("Upload resume + enter job description");
@@ -104,34 +88,26 @@ export default function Analyzer() {
       const data = await res.text();
       setResult(data);
     } catch (e) {
-      alert("Backend error");
+      alert("Error connecting backend");
     }
-  };
-
-  const renderList = (text) => {
-    return text
-      .split("\n")
-      .map((item) => item.replace("-", "").trim())
-      .filter((item) => item)
-      .map((item, i) => <li key={i}>{item}</li>);
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>AI Resume Analyzer</h2>
+        <h2>Resume Analysis</h2>
 
         {/* FILE */}
         <input
           type="file"
           accept=".pdf"
-          style={styles.input}
+          style={styles.upload}
           onChange={(e) => setFile(e.target.files[0])}
         />
 
         {/* JD */}
         <textarea
-          placeholder="Paste Job Description..."
+          placeholder="Paste Job Description"
           style={styles.textarea}
           onChange={(e) => setJobDesc(e.target.value)}
         />
@@ -147,24 +123,34 @@ export default function Analyzer() {
 
           return (
             <div style={styles.resultBox}>
-              <h3 style={{ color, textAlign: "center" }}>
-                Match Score: {data.score}%
-              </h3>
+              <h4 style={{ color }}>
+                Match Score: {data.score}
+              </h4>
 
-              <div>
-                <h4 style={styles.sectionTitle}>✅ Skills Present</h4>
-                <ul style={styles.list}>{renderList(data.skills)}</ul>
-              </div>
+              <b>Skills Present:</b>
+              <ul>
+                {data.skills.split("\n").map((s, i) =>
+                  s.trim().startsWith("-") ? (
+                    <li key={i}>{s.replace("-", "")}</li>
+                  ) : null
+                )}
+              </ul>
 
-              <div>
-                <h4 style={styles.sectionTitle}>❌ Missing Skills</h4>
-                <ul style={styles.list}>{renderList(data.missing)}</ul>
-              </div>
+              <b>Missing Skills:</b>
+              <ul>
+                {data.missing.split("\n").map((s, i) =>
+                  s.trim().startsWith("-") ? (
+                    <li key={i}>{s.replace("-", "")}</li>
+                  ) : null
+                )}
+              </ul>
 
-              <div>
-                <h4 style={styles.sectionTitle}>💡 Suggestions</h4>
-                <ul style={styles.list}>{renderList(data.suggestions)}</ul>
-              </div>
+              <b>Suggestions:</b>
+              <ul>
+                {data.suggestions.split("\n").map((s, i) =>
+                  s.trim() ? <li key={i}>{s}</li> : null
+                )}
+              </ul>
             </div>
           );
         })()}
